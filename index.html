@@ -19,11 +19,11 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fond);color:var(--texte);}
   header{
-    background:linear-gradient(135deg,var(--bleu),var(--bleu-clair));
-    color:#fff;padding:36px 24px;text-align:center;
+    background:linear-gradient(135deg,var(--bleu) 0%,var(--bleu-clair) 100%);
+    color:#fff;padding:38px 24px;text-align:center;
   }
-  header h1{font-size:1.9em;margin-bottom:8px;}
-  header p{max-width:820px;margin:0 auto;line-height:1.6;font-size:1.02em;opacity:.92;}
+  header h1{font-size:1.9em;margin-bottom:12px;}
+  header p{max-width:860px;margin:0 auto;line-height:1.65;font-size:1.02em;opacity:.93;}
   .conteneur{max-width:1100px;margin:0 auto;padding:24px 16px 48px;}
   section{background:var(--carte);border-radius:12px;padding:22px;margin-top:22px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
   h2{color:var(--bleu);font-size:1.25em;margin-bottom:14px;border-left:5px solid var(--or);padding-left:10px;}
@@ -31,7 +31,11 @@
   .vignette{background:var(--fond);border-radius:10px;padding:18px;text-align:center;}
   .vignette .valeur{font-size:1.9em;font-weight:700;color:var(--bleu);}
   .vignette .libelle{font-size:.9em;color:#5a6b7c;margin-top:4px;}
-  #carte{height:460px;border-radius:8px;}
+  #carte{height:520px;border-radius:8px;}
+  .legende{background:#fff;padding:10px 12px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.25);
+           font-size:.85em;line-height:1.8;}
+  .legende .pastille{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
+  .legende .ligne-polygone{display:inline-block;width:14px;height:8px;border:1px solid #6b5b95;background:rgba(107,91,149,.3);margin-right:6px;vertical-align:1px;}
   .bloc-graphique{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;}
   .bloc-graphique>div{flex:1 1 320px;min-width:300px;}
   .graphique-conteneur{height:340px;}
@@ -39,11 +43,13 @@
   th,td{padding:9px 12px;border-bottom:1px solid #dde3ea;text-align:left;font-size:.95em;}
   th{background:var(--bleu);color:#fff;}
   tr:nth-child(even){background:#f8fafc;}
-  .interpretation{line-height:1.7;}
+  .interpretation{line-height:1.75;}
+  .interpretation p{margin-bottom:10px;}
+  img.carte-arcgis{max-width:100%;border-radius:8px;border:1px solid #dde3ea;}
   footer{text-align:center;font-size:.85em;color:#7b8794;padding:18px;}
-  .fenetre-leaflet .nom-site{font-weight:700;font-size:1em;}
-  .fenetre-leaflet .detail{font-size:.9em;}
-  @media print{header,.graphique-conteneur{print-color-adjust:exact;}}
+  .popup-site .nom{font-weight:700;font-size:1em;}
+  .popup-site .detail{font-size:.9em;margin-top:2px;}
+  @media print{header,.graphique-conteneur,img{print-color-adjust:exact;}}
 </style>
 </head>
 <body>
@@ -51,11 +57,11 @@
 <header>
   <h1>🏰 Châteaux et demeures en Île-de-France</h1>
   <p>
-    <strong>Territoire étudié :</strong> la région Île-de-France (1 268 communes, 8 départements).<br>
-    <strong>Données utilisées :</strong> couche des châteaux et demeures (Chateaux_demeures_IDF),
-    communes et départements issus d'ArcGIS Pro (export GeoJSON, WGS 84), données INSEE 2017.<br>
-    <strong>Objectif :</strong> localiser les châteaux et demeures, identifier les catégories les plus
-    représentées et relier ce patrimoine aux communes qui l'accueillent.
+    <strong>Territoire étudié :</strong> la région Île-de-France — 8 départements, 1 287 communes, environ 12,18 millions d'habitants (recensement INSEE 2017).<br>
+    <strong>Données utilisées :</strong> localisation des châteaux et demeures (source Institut Paris Region, 76 sites géoréférencés),
+    communes et départements d'Île-de-France (projet ArcGIS Pro, export GeoJSON en WGS 84 / EPSG:4326), données INSEE 2017.<br>
+    <strong>Objectif :</strong> localiser les châteaux et demeures franciliens, les classer par catégorie d'intérêt patrimonial
+    et cartographier leur répartition entre Paris et la grande couronne.
   </p>
 </header>
 
@@ -63,7 +69,7 @@
 
   <section>
     <h2>Indicateurs clés</h2>
-    <div class="indicateurs" id="indicateurs">
+    <div class="indicateurs">
       <div class="vignette"><div class="valeur" id="kpi-total">–</div><div class="libelle">Châteaux et demeures recensés</div></div>
       <div class="vignette"><div class="valeur" id="kpi-categories">–</div><div class="libelle">Catégories différentes</div></div>
       <div class="vignette"><div class="valeur" id="kpi-top-categorie">–</div><div class="libelle">Catégorie la plus représentée</div></div>
@@ -74,7 +80,10 @@
   <section>
     <h2>Carte interactive</h2>
     <div id="carte"></div>
-    <p style="margin-top:8px;font-size:.88em;color:#5a6b7c;">Cliquez sur un point pour afficher son nom, sa catégorie et sa commune. Fond de carte : OpenStreetMap.</p>
+    <p style="margin-top:8px;font-size:.88em;color:#5a6b7c;">
+      Cliquez sur un point pour afficher le nom du site, sa catégorie, sa commune et son adresse.
+      Les contours violets correspondent aux 8 départements d'Île-de-France (population affichée au clic).
+    </p>
   </section>
 
   <section>
@@ -91,133 +100,206 @@
   </section>
 
   <section>
+    <h2>Population par département (INSEE 2017)</h2>
+    <div class="graphique-conteneur"><canvas id="graphique-departements"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Mise en page ArcGIS Pro (Q3.1)</h2>
+    <p style="margin-bottom:12px;font-size:.92em;color:#5a6b7c;">
+      Carte de mise en page réalisée dans ArcGIS Pro : communes, départements et châteaux par catégorie.
+    </p>
+    <img class="carte-arcgis" src="data/Q3.1.png" alt="Carte ArcGIS Pro des châteaux et demeures d'Île-de-France par catégorie (Q3.1)">
+  </section>
+
+  <section>
     <h2>Interprétation</h2>
-    <div class="interpretation" id="interpretation">
-      <p>La carte fait apparaître une répartition asymétrique du patrimoine de châteaux et demeures en Île-de-France :
-      les sites se concentrent surtout dans les départements de la grande couronne, plus ruraux et moins denses,
-      où les grands domaines ont pu se conserver, tandis que Paris et la petite couronne n'en comptent que peu.</p>
-      <p id="phrase-dynamique">Les chiffres ci-dessus sont calculés automatiquement à partir des données chargées.</p>
-      <p>Les catégories ne sont pas représentées de façon égale : la catégorie la plus fréquente domine nettement le corpus,
-      ce qui reflète la typologie historique du patrimoine francilien (demeures de la proche région parisienne,
-      châteaux résidentiels de la vallée de la Seine et de la Marne).</p>
+    <div class="interpretation">
+      <p>Sur les <strong>76 châteaux et demeures recensés</strong> en Île-de-France (source Institut Paris Region), répartis dans
+      <strong>64 communes</strong>, la catégorie dominante est celle des sites d'<strong>intérêt local</strong> (45 sites, soit 59 %),
+      suivie de la catégorie supra-local (18 sites, 24 %), régionale (10 sites, 13 %) puis nationale ou internationale (3 sites, 4 %
+      : Versailles, Fontainebleau et Thoiry). Ce dégradé montre que le patrimoine francilien est d'abord un patrimoine de proximité,
+      dont seuls quelques grands exemplaires ont un rayonnement national.</p>
+      <p>Spatialement, la répartition est plus équilibrée que ce à quoi on pourrait s'attendre : si les Yvelines arrivent logiquement
+      en tête (17 sites, avec Versailles et de nombreux châteaux de vallée), la petite couronne reste bien présente
+      avec 16 sites dans le Val-de-Marne et 12 en Seine-Saint-Denis, contre seulement 3 à Paris intra-muros, où l'urbanisation dense
+      a fait disparaître la plupart des demeures. La grande couronne (77, 78, 91, 95) reste la mieux dotée, ce qui s'explique par la
+      conservation des grands domaines et par une moindre pression foncière.</p>
+      <p>En croisant avec les données INSEE 2017, on observe que ces sites se situent majoritairement dans des communes de taille
+      moyenne, hors des quartiers les plus denses : le patrimoine de châteaux se concentre là où l'espace —
+      et donc les parcs et jardins — ont pu être préservés.</p>
     </div>
   </section>
 
 </div>
 
-<footer>Tableau de bord réalisé dans le cadre du TP2 SIG &amp; CIM (ArcGIS Pro) — Canvas, page interactive géoréférencée.</footer>
+<footer>
+  Tableau de bord réalisé dans le cadre du TP2 SIG &amp; CIM (ESTP) — données ArcGIS Pro, carte Leaflet / OpenStreetMap, graphiques Chart.js.
+</footer>
 
 <script>
 const FICHIERS = {
-  chateaux : 'data/Chateaux_demeures_IDF.geojson',
-  communes : 'data/communes_RP2017.geojson'
+  chateaux : 'data/Chateaux_demeu_FeaturesToJSO.geojson',
+  communes : 'data/communes_RP2017_Project.geojson',
+  departements : 'data/departement_IDF.geojson'
 };
-const CHAMP_CATEGORIE = ['categorie','catégorie','Categorie','CATEGORIE','typologie','type','TYPE','ttl_nom_ca','libelle','libellé'];
-const CHAMP_NOM       = ['nom','Nom','NOM','nom_site','toponyme','denomination','dénomination'];
-const CHAMP_COMMUNE   = ['commune','Commune','COMMUNE','nom_com','ville','insee_com'];
 
-function trouverPropriete(props, noms){
-  for(const n of noms){
-    if(props[n] !== undefined && props[n] !== null && String(props[n]).trim() !== '') return props[n];
-  }
-  for(const cle of Object.keys(props)){
-    for(const n of noms){
-      if(cle.toLowerCase().trim() === n.toLowerCase()) return props[cle];
-    }
-  }
-  return null;
-}
+const NOMS_CATEGORIES = {
+  '1': "Intérêt local",
+  '2': "Intérêt supra-local",
+  '3': "Intérêt régional",
+  '4': "Intérêt national ou international"
+};
+const PALETTE = ['#8fb2d4', '#3f6ea5', '#c9a227', '#8b2f2f'];
 
-fetch(FICHIERS.chateaux)
-  .then(reponse => { if(!reponse.ok) throw new Error('fichier introuvable : ' + reponse.url); return reponse.json(); })
-  .then(geojson => {
+fetch(FICHIERS.chateaux).then(r => r.json()).then(geojson => {
 
-    const sites = geojson.features.map(ent => ({
-      nom      : trouverPropriete(ent.properties, CHAMP_NOM)     || 'Site sans nom',
-      categorie: trouverPropriete(ent.properties, CHAMP_CATEGORIE) || 'Non renseignée',
-      commune  : trouverPropriete(ent.properties, CHAMP_COMMUNE) || '',
-      coords   : ent.geometry && ent.geometry.coordinates
-    }));
-
-    const total = sites.length;
-    const compteCategories = {};
-    sites.forEach(s => compteCategories[s.categorie] = (compteCategories[s.categorie] || 0) + 1);
-    const categories = Object.keys(compteCategories).sort((a,b) => compteCategories[b] - compteCategories[a]);
-    const topCategorie = categories[0];
-    const topNombre = compteCategories[topCategorie];
-    const nbCommunes = new Set(sites.map(s => s.commune).filter(Boolean)).size;
-
-    document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-categories').textContent = categories.length;
-    document.getElementById('kpi-top-categorie').textContent = topCategorie;
-    document.getElementById('kpi-communes').textContent = nbCommunes;
-    document.getElementById('phrase-dynamique').textContent =
-      'Sur ' + total + ' sites recensés, ' + topNombre + ' appartiennent à la catégorie « ' +
-      topCategorie + ' », soit ' + Math.round(topNombre / total * 100) + '% du corpus, répartis dans ' +
-      nbCommunes + ' communes d\u2019Île-de-France.';
-
-    const palette = ['#1f3a5f','#c9a227','#3f6ea5','#8b3a3a','#4e7a4e','#7a5c9e','#c05746','#557a8b'];
-    const couleursCategories = {};
-    categories.forEach((c,i) => couleursCategories[c] = palette[i % palette.length]);
-
-    new Chart(document.getElementById('graphique-categories'), {
-      type: 'bar',
-      data: {
-        labels: categories,
-        datasets: [{ label: 'Nombre de sites', data: categories.map(c => compteCategories[c]),
-                     backgroundColor: categories.map(c => couleursCategories[c]) }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-        plugins: { legend: { display: false } }
-      }
-    });
-
-    const corpsTableau = document.querySelector('#tableau-categories tbody');
-    categories.forEach(c => {
-      const ligne = document.createElement('tr');
-      const part = Math.round(compteCategories[c] / total * 100) + ' %';
-      ligne.innerHTML = '<td>' + c + '</td><td>' + compteCategories[c] + '</td><td>' + part + '</td>';
-      corpsTableau.appendChild(ligne);
-    });
-
-    const carte = L.map('carte').setView([48.75, 2.4], 9);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19
-    }).addTo(carte);
-
-    L.geoJSON(geojson, {
-      onEachFeature: (ent, calque) => {
-        const nom       = trouverPropriete(ent.properties, CHAMP_NOM)       || 'Site sans nom';
-        const categorie = trouverPropriete(ent.properties, CHAMP_CATEGORIE) || 'Non renseignée';
-        const commune   = trouverPropriete(ent.properties, CHAMP_COMMUNE);
-        calque.bindPopup(
-          '<div class="fenetre-leaflet">' +
-          '<div class="nom-site">' + nom + '</div>' +
-          '<div class="detail">Catégorie : ' + categorie + '</div>' +
-          (commune ? '<div class="detail">Commune : ' + commune + '</div>' : '') +
-          '</div>'
-        );
-      },
-      pointToLayer: (ent, latlng) => {
-        const categorie = trouverPropriete(ent.properties, CHAMP_CATEGORIE) || 'Non renseignée';
-        return L.circleMarker(latlng, {
-          radius: 6, weight: 1.5, color: '#fff',
-          fillColor: couleursCategories[categorie] || '#1f3a5f', fillOpacity: 0.95
-        });
-      }
-    }).addTo(carte);
-    try { carte.fitBounds(L.geoJSON(geojson).getBounds(), { padding: [25,25] }); } catch(e){}
-
+  const sites = geojson.features.map(ent => {
+    const code = String(ent.properties.Categorie || '').charAt(0);
+    return {
+      nom: ent.properties.NOM || ent.properties.NOM_CARTO || 'Site sans nom',
+      adresse: ent.properties.ADRESSE || '',
+      commune: ent.properties.NOMCOM || '',
+      categorie: NOMS_CATEGORIES[code] || 'Autre',
+      code: code
+    };
   });
 
-fetch(FICHIERS.chateaux).then(r => r.ok).catch(() => {
-  const note = document.createElement('p');
-  note.style.cssText = 'margin-top:12px;color:#b33;font-weight:600;';
-  note.textContent = '⚠️ Le fichier ' + FICHIERS.chateaux + ' est introuvable. Placez vos exports GeoJSON d\u2019ArcGIS Pro dans le sous-dossier « data » (voir README).';
-  document.getElementById('carte').before(note);
+  const total = sites.length;
+  const compte = {};
+  sites.forEach(s => compte[s.categorie] = (compte[s.categorie] || 0) + 1);
+  const categories = Object.keys(compte).sort((a, b) => ordreCategorie(a) - ordreCategorie(b));
+  const topCategorie = categories.reduce((a, b) => compte[b] > compte[a] ? b : a);
+  const nbCommunes = new Set(g.features.map(f => f.properties.INSEE).filter(Boolean)).size;
+
+  function ordreCategorie(c){
+    for(const [code, nom] of Object.entries(NOMS_CATEGORIES)){
+      if(nom === c) return Number(code);
+    }
+    return 9;
+  }
+  function couleurCategorie(c){
+    return PALETTE[(ordreCategorie(c) - 1) % PALETTE.length];
+  }
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-categories').textContent = categories.length;
+  document.getElementById('kpi-top-categorie').textContent = topCategorie.replace(/^Intérêt /, '');
+  document.getElementById('kpi-communes').textContent = nbCommunes;
+
+  new Chart(document.getElementById('graphique-categories'), {
+    type: 'bar',
+    data: {
+      labels: categories,
+      datasets: [{
+        label: 'Nombre de sites',
+        data: categories.map(c => compte[c]),
+        backgroundColor: categories.map(couleurCategorie)
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  const corpsTableau = document.querySelector('#tableau-categories tbody');
+  categories.forEach(c => {
+    const ligne = document.createElement('tr');
+    ligne.innerHTML = '<td>' + c + '</td><td>' + compte[c] + '</td><td>' +
+      Math.round(compte[c] / total * 100) + ' %</td>';
+    corpsTableau.appendChild(ligne);
+  });
+
+  const carte = L.map('carte').setView([48.78, 2.4], 8);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(carte);
+
+  fetch(FICHIERS.departements).then(r => r.json()).then(departements => {
+    L.geoJSON(departements, {
+      style: { color: '#6b5b95', weight: 2, fillColor: '#6b5b95', fillOpacity: 0.06 },
+      onEachFeature: (ent, calque) => {
+        const nom = 'Département ' + ent.properties.NumDep;
+        const pop = (ent.properties.SUM_POP2S || 0).toLocaleString('fr-FR');
+        calque.bindPopup('<div class="popup-site"><span class="nom">' + nom +
+          '</span><div class="detail">Population 2017 (somme des communes) : ' + pop + ' habitants</div></div>');
+      }
+    }).addTo(carte);
+  });
+
+  fetch(FICHIERS.communes).then(r => r.json()).then(communes => {
+    L.geoJSON(communes, {
+      style: { color: '#9aa7b4', weight: 1, fillOpacity: 0.04 },
+      onEachFeature: (ent, calque) => {
+        calque.bindPopup('<div class="popup-site"><span class="nom">' + (ent.properties.nomcom || 'Commune') +
+          '</span><div class="detail">Population 2017 : ' + (ent.properties.POP2S || 0).toLocaleString('fr-FR') + ' hab.</div></div>');
+      }
+    }).addTo(carte);
+  });
+
+  const couchesChateaux = L.geoJSON(geojson, {
+    onEachFeature: (ent, calque) => {
+      const code = String(ent.properties.Categorie || '').charAt(0);
+      const cat = NOMS_CATEGORIES[code] || 'Autre';
+      calque.bindPopup('<div class="popup-site">' +
+        '<div class="nom">' + (ent.properties.NOM || ent.properties.NOM_CARTO) + '</div>' +
+        '<div class="detail">Catégorie : ' + cat + '</div>' +
+        '<div class="detail">Commune : ' + (ent.properties.NOMCOM || '') + ' (' + ent.properties.dep + ')</div>' +
+        (ent.properties.ADRESSE ? '<div class="detail">Adresse : ' + ent.properties.ADRESSE + '</div>' : '') +
+        '</div>');
+    },
+    pointToLayer: (ent, latlng) => {
+      const code = String(ent.properties.Categorie || '').charAt(0);
+      return L.circleMarker(latlng, {
+        radius: 7, weight: 1.5, color: '#ffffff',
+        fillColor: PALETTE[(Number(code) - 1) % PALETTE.length] || '#1f3a5f',
+        fillOpacity: 0.95
+      });
+    }
+  }).addTo(carte);
+
+  const legendes = Object.entries(NOMS_CATEGORIES).map(([code, nom]) =>
+    '<div><span class="pastille" style="background:' + PALETTE[(Number(code) - 1) % PALETTE.length] + '"></span>' + nom + '</div>'
+  ).join('');
+  const legende = L.control({ position: 'bottomright' });
+  legende.onAdd = function(){
+    const div = L.DomUtil.create('div', 'legende');
+    div.innerHTML = legendes;
+    return div;
+  };
+  legende.addTo(carte);
+
+  try {
+    carte.fitBounds(couchesChateaux.getBounds(), { padding: [30, 30] });
+  } finally {}
+
+  fetch(FICHIERS.departements).then(r => r.json()).then(departements => {
+    const tri = departements.features.slice().sort((a, b) =>
+      (b.properties.SUM_POP2S || 0) - (a.properties.SUM_POP2S || 0));
+    new Chart(document.getElementById('graphique-departements'), {
+      type: 'bar',
+      data: {
+        labels: tri.map(f => 'Dép. ' + f.properties.NumDep),
+        datasets: [{
+          label: 'Population 2017',
+          data: tri.map(f => f.properties.SUM_POP2S || 0),
+          backgroundColor: '#3f6ea5'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { callback: v => (v / 1000000).toLocaleString('fr-FR') + ' M' } } }
+      }
+    });
+  });
+
 });
 </script>
 </body>
