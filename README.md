@@ -11,14 +11,9 @@ TP2 SIG & CIM (ESTP) — Partie 3 : tableau de bord HTML valorisant les résulta
 - `data/Q3.1.png` — impression d'écran de la mise en page ArcGIS Pro (Q3.1).
 
 ## Ouvrir le tableau de bord
-Double-cliquer sur `index.html` fonctionne dans la plupart des navigateurs.
-Sinon, depuis ce dossier :
-
-```
-python -m http.server 8000
-```
-
-puis ouvrir http://localhost:8000
+Double-cliquer sur `index.html` : le dashboard s'ouvre directement dans le navigateur,
+sans serveur ni installation (les GeoJSON sont intégrés dans la page ; seul le fond OSM
+nécessite une connexion internet).
 
 ## Fichiers de rendu
 Ne transmettre que l'index ne suffit pas : le dossier complet `index.html` + `data/` est requis,
